@@ -6,19 +6,20 @@ VERSION = '0.0.0'
 
 entry_points = {
 	"zc.buildout" : [
-		'databases = nti.recipes.relstorage.meta:Databases'
+		'default = nti.recipes.passwords:Decrypt',
+		'update = nti.recipes.passwords:Encrypt'
 	],
 }
 
 setup(
-    name = 'nti.recipes.relstorage',
+    name = 'nti.recipes.passwords',
     version = VERSION,
     author = 'Jason Madden',
     author_email = 'open-source@nextthought.com',
-    description = "zc.buildout recipes for RelStorage",
+    description = "zc.buildout recipes for securely storing passwords in version control",
     long_description = codecs.open('README.rst', encoding='utf-8').read(),
     license = 'Proprietary',
-    keywords = 'buildout relstorage',
+    keywords = 'buildout password',
     #url = 'https://github.com/NextThought/nti.nose_traceback_info',
     classifiers = [
         'Development Status :: 5 - Production/Stable',

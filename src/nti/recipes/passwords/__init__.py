@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-A meta-recipe to create multiple
-relstorage connections in a Dataserver buildout.
+Recipes to decrypt and encrypt passwords.
 
 $Id$
 """
