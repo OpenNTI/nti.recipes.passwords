@@ -18,14 +18,22 @@ from ConfigParser import SafeConfigParser as ConfigParser
 
 class Decrypt(object):
 
+	output_file = ()
+
 	def __init__(self, buildout, name, options ):
+		# Allow no file to be able to specify defaults
+		# for developers; obviously production must have
+		# the real things
+		if not options.get('file'):
+			return
+
 		input_file = options['file']
 		if not input_file.endswith( '.cast5' ):
 			raise zc.buildout.UserError("Input is not a .cast5 file")
 		output_file = input_file[:-6]
 
-		input_mod_time = repr(os.stat(input_file).st_mtime)
-		options['input_mod_time'] = input_mod_time
+		input_mod_time = os.stat(input_file).st_mtime
+		options['input_mod_time'] = repr(input_mod_time)
 
 
 		self.buildout = buildout
@@ -36,11 +44,12 @@ class Decrypt(object):
 
 
 
-		if not os.path.isfile(output_file):
+		if not os.path.isfile(output_file) or os.stat(output_file).st_mtime < input_mod_time:
 			options['fresh'] = b'true'
-			# FIXME: If we don't do this now, sections that depend on
+			# Hmm...If we don't do this now, sections that depend on
 			# us cant interpolate and they fail.
-			self.install()
+			self._decrypt()
+			self._read()
 		else:
 			options['fresh'] = b'false'
 			self._read()
@@ -52,16 +61,14 @@ class Decrypt(object):
 		for key, value in config.items(self.name):
 			self.options[key] = value
 
-
-	# FIXME: We are prompting too often
-	def install(self):
+	def _decrypt(self):
 		os.system( "openssl cast5-cbc -d -in '%s' -out '%s'" % (self.input_file, self.output_file) )
-		self._read()
-		return (self.output_file,)
+
+	def install(self):
+		return self.output_file
 
 	def update(self):
-		os.system( "openssl cast5-cbc -d -in '%s' -out '%s'" % (self.input_file, self.output_file) )
-		self._read()
+		pass
 
 class Encrypt(Decrypt):
 	pass

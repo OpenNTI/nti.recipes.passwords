@@ -27,7 +27,7 @@ import zc.buildout.testing
 
 import unittest
 import os
-from ..meta import Databases
+from .. import Decrypt
 
 class NoDefaultBuildout(zc.buildout.testing.Buildout):
 	# The testing buildout doesn't provide a way to
@@ -40,22 +40,12 @@ class NoDefaultBuildout(zc.buildout.testing.Buildout):
 			[('buildout', 'directory', os.getcwd())],
 			user_defaults=False)
 
-class TestDatabases(unittest.TestCase):
+class TestDecrypt(unittest.TestCase):
 
-	def test_parse(self):
+	def test_no_file(self):
 		# No verification, just sees if it runs
 
 		buildout = NoDefaultBuildout()
-		buildout['deployment'] = {
-			'etc-directory': '/etc',
-			'data-directory': '/data'
-		}
-		buildout['environment'] = {
-			'sql_user': 'user',
-			'sql_passwd': 'passwd',
-			'sql_host': 'host',
-			'cache_servers': 'cache'
-		}
-		Databases( buildout, 'relstorages', {'storages': 'Users Users_1 Sessions'} )
+		Decrypt( buildout, 'passwords', {} )
 
 		#buildout.print_options()
