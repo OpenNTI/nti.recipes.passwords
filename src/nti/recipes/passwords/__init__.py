@@ -142,8 +142,8 @@ class _BaseDecrypt(object):
 
 		self.part_dir = os.path.join( buildout['buildout']['parts-directory'], name )
 
-		self.checksum_file = os.path.join( self.part_dir, 'checksum' )
-		self.plaintext_file = os.path.join( self.part_dir, 'plaintext' )
+		self.checksum_file = os.path.join( self.part_dir, b'checksum' )
+		self.plaintext_file = os.path.join( self.part_dir, b'plaintext' )
 
 		old_checksum = None
 		self.plaintext = None
