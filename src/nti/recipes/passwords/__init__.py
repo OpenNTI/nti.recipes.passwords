@@ -112,6 +112,8 @@ class _BaseDecrypt(object):
 	needs_write = False
 	plaintext = None
 	part_dir = None
+	checksum_file = u''
+	plaintext_file = u''
 
 	def __init__(self, buildout, name, options ):
 		# Allow no file to be able to specify defaults
@@ -166,7 +168,7 @@ class _BaseDecrypt(object):
 
 
 	def _do_write(self):
-		if not os.path.isdir( self.part_dir ):
+		if self.part_dir and not os.path.isdir(self.part_dir):
 			os.mkdir( self.part_dir, 0700 )
 
 		if self.needs_write:
