@@ -164,14 +164,7 @@ class _BaseDecrypt(object):
 			# because the input was the perfect size, then an entire
 			# block of \x08 is added, so there is always padding to
 			# remove.
-			for pad in ( b'\x08' * 8,
-						 b'\x07' * 7,
-						 b'\x06' * 6,
-						 b'\x05' * 5,
-						 b'\x04' * 4,
-						 b'\x03' * 3,
-						 b'\x02' * 2,
-						 b'\x01' * 1 ):
+			for pad in (chr(i) * i for i in range(8,0,-1)):
 				if self.plaintext.endswith( pad ):
 					self.plaintext = self.plaintext[:-len(pad)]
 					break
