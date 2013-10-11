@@ -111,6 +111,7 @@ class _BaseDecrypt(object):
 
 	needs_write = False
 	plaintext = None
+	part_dir = None
 
 	def __init__(self, buildout, name, options ):
 		# Allow no file to be able to specify defaults

@@ -44,7 +44,7 @@ class TestDecryptSection(unittest.TestCase):
 		# No verification, just sees if it runs
 
 		buildout = NoDefaultBuildout()
-		DecryptSection( buildout, 'passwords', {} )
+		DecryptSection( buildout, 'passwords', {'base_passwd': ''} )
 
 		#buildout.print_options()
 
