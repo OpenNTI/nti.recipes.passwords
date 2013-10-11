@@ -6,8 +6,8 @@ VERSION = '0.0.0'
 
 entry_points = {
 	"zc.buildout" : [
-		'default = nti.recipes.passwords:Decrypt',
-		'update = nti.recipes.passwords:Encrypt'
+		'default = nti.recipes.passwords:DecryptSection',
+		'decryptFile = nti.recipes.passwords:DecryptFile'
 	],
 }
 
@@ -39,7 +39,8 @@ setup(
 	install_requires=[
 		'setuptools',
 		'zc.buildout',
-		'zc.recipe.deployment'
+		'zc.recipe.deployment',
+		'pycrypto >= 2.6'
 	],
 	entry_points=entry_points
 )
