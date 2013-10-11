@@ -156,9 +156,25 @@ class _BaseDecrypt(object):
 
 			self.plaintext = self._encrypted_file.get_plaintext( passphrase,
 																 self._encrypted_file.ciphertext )
-			# XXX FIXME: WTF?
-			if self.plaintext.endswith( b'\x01' ):
-				self.plaintext = self.plaintext[:-1]
+			# Cast5 CBC is a block cipher with an 8-byte block size.
+			# The plaintext is always padded to be a multiple of 8
+			# bytes by OpenSSL. If one byte is required, the padding
+			# is \x01. If two bytes, \x02\x02, three bytes
+			# \x03\x03\x03 and so on. If no bytes were required
+			# because the input was the perfect size, then an entire
+			# block of \x08 is added, so there is always padding to
+			# remove.
+			for pad in ( b'\x08' * 8,
+						 b'\x07' * 7,
+						 b'\x06' * 6,
+						 b'\x05' * 5,
+						 b'\x04' * 4,
+						 b'\x03' * 3,
+						 b'\x02' * 2,
+						 b'\x01' * 1 ):
+				if self.plaintext.endswith( pad ):
+					self.plaintext = self.plaintext[:-len(pad)]
+					break
 
 			self.needs_write = True
 
