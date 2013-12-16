@@ -35,8 +35,22 @@ import zc.buildout
 
 from ConfigParser import SafeConfigParser as ConfigParser
 
-from Crypto.Cipher import CAST
-from Crypto import Random
+try:
+	from Crypto.Cipher import CAST
+	from Crypto import Random
+except ImportError:
+	# Crypto MUST be installed by the buildout, we
+	# cannot install it ourself.
+	# If we list it as a dependency, it gets auto built,
+	# which means we don't get the complete set of options
+	# for it: specifically, we have no control over whether or if
+	# it finds libGMP.
+	# Fortunately, after we are run the second time, we get the
+	# develop-egg for pycrypto auto-added to us and everything
+	# works.
+	CAST = None
+	Random = None
+
 from cStringIO import StringIO
 import getpass
 from hashlib import md5
@@ -73,6 +87,8 @@ class _BaseFormat(object):
 		return self._make_cipher( passphrase ).encrypt( plaintext )
 
 	def get_plaintext( self, passphrase, ciphertext ):
+		if CAST is None:
+			return ''
 		return self._make_cipher( passphrase ).decrypt( ciphertext )
 
 def _read(name, mode):
