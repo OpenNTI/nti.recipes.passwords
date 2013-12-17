@@ -41,8 +41,8 @@ setup(
 		'zc.buildout',
 		'zc.recipe.deployment',
 		# NOTE: We use Crypto but CANNOT depend on it;
-		# it must be installed yn the buildout. See __init__.py for details.
-		#'pycrypto >= 2.6'
+		# it must be installed in the buildout. See __init__.py for details.
+		'pycrypto >= 2.6'
 	],
 	entry_points=entry_points
 )
