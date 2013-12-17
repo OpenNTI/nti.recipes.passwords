@@ -39,6 +39,7 @@ try:
 	from Crypto.Cipher import CAST
 	from Crypto import Random
 except ImportError:
+	raise
 	# Crypto MUST be installed by the buildout, we
 	# cannot install it ourself.
 	# If we list it as a dependency, it gets auto built,
