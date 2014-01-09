@@ -3,6 +3,8 @@
 """
 Recipes to decrypt and encrypt passwords and related data.
 
+See http://ejohn.org/blog/keeping-passwords-in-source-control/
+
 File Format
 ===========
 
