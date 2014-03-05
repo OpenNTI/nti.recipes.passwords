@@ -11,6 +11,12 @@ entry_points = {
 	],
 }
 
+
+import platform
+py_impl = getattr(platform, 'python_implementation', lambda: None)
+IS_PYPY = py_impl() == 'PyPy'
+
+
 setup(
     name = 'nti.recipes.passwords',
     version = VERSION,
@@ -40,9 +46,9 @@ setup(
 		'setuptools',
 		'zc.buildout',
 		'zc.recipe.deployment',
-		# NOTE: We use Crypto but CANNOT depend on it;
+		# NOTE: We use Crypto but CANNOT depend on it, it's too late,
 		# it must be installed in the buildout. See __init__.py for details.
-		'pycrypto >= 2.6'
+		'pycrypto >= 2.6' if not IS_PYPY else ''
 	],
 	entry_points=entry_points
 )

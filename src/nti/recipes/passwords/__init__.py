@@ -40,8 +40,7 @@ from ConfigParser import SafeConfigParser as ConfigParser
 try:
 	from Crypto.Cipher import CAST
 	from Crypto import Random
-except ImportError:
-	raise
+except ImportError: # PyPy?
 	# Crypto MUST be installed by the buildout, we
 	# cannot install it ourself.
 	# If we list it as a dependency, it gets auto built,
