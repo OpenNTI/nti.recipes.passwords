@@ -1,6 +1,5 @@
-#!/usr/bin/env python
-from setuptools import setup, find_packages
 import codecs
+from setuptools import setup, find_packages
 
 VERSION = '0.0.0'
 
@@ -11,11 +10,9 @@ entry_points = {
 	],
 }
 
-
 import platform
 py_impl = getattr(platform, 'python_implementation', lambda: None)
 IS_PYPY = py_impl() == 'PyPy'
-
 
 setup(
 	name = 'nti.recipes.passwords',
