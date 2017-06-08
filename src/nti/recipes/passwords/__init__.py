@@ -36,7 +36,10 @@ import os
 
 import zc.buildout
 
-from ConfigParser import SafeConfigParser as ConfigParser
+try:
+    from ConfigParser import SafeConfigParser as ConfigParser
+except ImportError:
+    from configparser import ConfigParser
 
 try:
     from Crypto import Random
@@ -107,7 +110,7 @@ class _EncryptedFile(_BaseFormat):
     def __init__(self, name):
         self.name = name
         self._data = _read(name, 'rb')
-        if not self._data.startswith('Salted__'):
+        if not self._data.startswith(b'Salted__'):
             raise zc.buildout.UserError("Improper input file format")
 
     @property
@@ -188,6 +191,7 @@ class _BaseDecrypt(object):
             # block of \x08 is added, so there is always padding to
             # remove.
             for pad in (chr(i) * i for i in range(8, 0, -1)):
+                pad = pad.encode("utf-8")
                 if self.plaintext.endswith(pad):
                     self.plaintext = self.plaintext[:-len(pad)]
                     break
@@ -199,7 +203,7 @@ class _BaseDecrypt(object):
 
     def _do_write(self):
         if self.part_dir and not os.path.isdir(self.part_dir):
-            os.mkdir(self.part_dir, 0700)
+            os.mkdir(self.part_dir, 0o2770)
 
         if self.needs_write:
             with open(self.plaintext_file, 'wb') as f:
@@ -217,11 +221,16 @@ class _BaseDecrypt(object):
 
 class DecryptSection(_BaseDecrypt):
 
+    @classmethod
+    def text_(cls, s):
+        return s.decode("utf-8") if isinstance(s, bytes) else s
+
     def __init__(self, buildout, name, options):
         _BaseDecrypt.__init__(self, buildout, name, options)
         if self.plaintext:
             config = ConfigParser()
-            config.readfp(StringIO(self.plaintext))
+            source = self.text_(self.plaintext)
+            config.readfp(StringIO(source))
             for key, value in config.items(name):
                 options[key] = value
 
