@@ -232,7 +232,7 @@ class DecryptSection(_BaseDecrypt):
             source = self.text_(self.plaintext)
             config.readfp(StringIO(source))
             for key, value in config.items(name):
-                options[key] = value
+                options[key] = str(value)
 
 
 class DecryptFile(_BaseDecrypt):
