@@ -27,7 +27,7 @@ def _read(fname):
 
 setup(
     name='nti.recipes.passwords',
-    version=_read('version.txt').strip(),
+    version="1.0.0.dev0",
     author='Jason Madden',
     author_email='open-source@nextthought.com',
     description="zc.buildout recipes for securely storing passwords in version control",
@@ -66,5 +66,4 @@ setup(
         'test': TESTS_REQUIRE,
     },
     entry_points=entry_points,
-    test_suite="nti.recipes.passwords.tests",
 )
