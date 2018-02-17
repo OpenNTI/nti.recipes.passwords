@@ -54,7 +54,7 @@ setup(
         'six',
         'zc.buildout',
         'zc.recipe.deployment',
-        'pycrypto >= 2.6',
+        'cryptography',
     ],
     extras_require={
         'test': TESTS_REQUIRE,

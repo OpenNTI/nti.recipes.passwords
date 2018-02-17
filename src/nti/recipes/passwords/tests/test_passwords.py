@@ -57,6 +57,7 @@ class TestDecryptSection(unittest.TestCase):
         options = {
             'file': 'foo.cast5'
         }
+
         DecryptSection(buildout, 'passwords', options)
 
         assert_that(options, has_entry('_input_mod_time', '0'))
