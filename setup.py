@@ -29,6 +29,7 @@ setup(
     description="zc.buildout recipes for securely storing passwords in version control",
     long_description=(_read('README.rst') + '\n\n' + _read("CHANGES.rst")),
     license='Apache',
+    url="https://github.com/NextThought/nti.recipes.passwords",
     keywords='buildout password',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
