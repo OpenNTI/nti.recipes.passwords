@@ -23,7 +23,7 @@ def _read(fname):
 
 setup(
     name='nti.recipes.passwords',
-    version="1.0.0.dev0",
+    version='1.0.0',
     author='Jason Madden',
     author_email='open-source@nextthought.com',
     description="zc.buildout recipes for securely storing passwords in version control",
