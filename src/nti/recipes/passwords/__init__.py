@@ -24,7 +24,6 @@ That is, the key is the MD5 checksum of concatenating the passphrase
 followed by the salt, and the initial vector is the first 8 bytes of the
 MD5 of the key, passphrase and salt concatenated.
 
-$Id$
 """
 
 from __future__ import print_function, absolute_import, division
@@ -32,91 +31,84 @@ __docformat__ = "restructuredtext en"
 
 logger = __import__('logging').getLogger(__name__)
 
+from io import StringIO
 import os
 
 import zc.buildout
 
 try:
-    from ConfigParser import SafeConfigParser as ConfigParser
-except ImportError:
     from configparser import ConfigParser
+except ImportError: # Python 2 pragma: no cover
+    from ConfigParser import SafeConfigParser as ConfigParser
 
-try:
-    from Crypto import Random
-    from Crypto.Cipher import CAST
-except ImportError:  # PyPy?
-    # Crypto MUST be installed by the buildout, we
-    # cannot install it ourself.
-    # If we list it as a dependency, it gets auto built,
-    # which means we don't get the complete set of options
-    # for it: specifically, we have no control over whether or if
-    # it finds libGMP.
-    # Fortunately, after we are run the second time, we get the
-    # develop-egg for pycrypto auto-added to us and everything
-    # works.
-    CAST = None
-    Random = None
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.ciphers import Cipher
+from cryptography.hazmat.primitives.ciphers.modes import CBC
+from cryptography.hazmat.primitives.ciphers.algorithms import CAST5
 
-import six
+CAST_BLOCK_SIZE = 8 # This is fixed
+
 import getpass
 from hashlib import md5
-from six import StringIO
 
 
 class _BaseFormat(object):
+    _salt = None
 
-    #: Eight bytes of random salt data
-    salt = None
+    @property
+    def salt(self):
+        "Eight bytes of random salt data"
+        if self._salt is None:
+            self._salt = self.new_salt()
+        return self._salt
 
     def new_salt(self):
-        return Random.new().read(CAST.block_size)
+        return os.urandom(CAST_BLOCK_SIZE)
 
     def make_key(self, passphrase):
-        if isinstance(passphrase, six.text_type):
+        if not isinstance(passphrase, bytes):
             passphrase = passphrase.encode("utf-8")
-        return md5(passphrase + self.salt).digest()
+        salt = self.salt
+        assert isinstance(salt, bytes) and len(salt) == 8, salt
+
+        return md5(passphrase + salt).digest()
 
     def make_iv(self, passphrase):
         key = self.make_key(passphrase)
-        if isinstance(passphrase, six.text_type):
+        if not isinstance(passphrase, bytes):
             passphrase = passphrase.encode('utf-8')
         return md5(key + passphrase + self.salt).digest()[:8]
 
     def _make_cipher(self, passphrase):
         key = self.make_key(passphrase)
         iv = self.make_iv(passphrase)
-        cipher = CAST.new(key, CAST.MODE_CBC, iv)
+        cipher = Cipher(CAST5(key), CBC(iv), backend=default_backend())
         return cipher
 
     def make_ciphertext(self, passphrase, plaintext):
-        if isinstance(plaintext, six.text_type):
+        if not isinstance(plaintext, bytes):
             plaintext = plaintext.encode('utf-8')
-        return self._make_cipher(passphrase).encrypt(plaintext)
+        encryptor = self._make_cipher(passphrase).encryptor()
+        return encryptor.update(plaintext) + encryptor.finalize()
 
     def get_plaintext(self, passphrase, ciphertext):
-        if CAST is None:
-            return ''
-        return self._make_cipher(passphrase).decrypt(ciphertext)
-
-
-def _read(name, mode):
-    # For ease of mocking
-    with open(name, mode) as f:
-        return f.read()
+        decryptor = self._make_cipher(passphrase).decryptor()
+        return decryptor.update(ciphertext) + decryptor.finalize()
 
 
 class _EncryptedFile(_BaseFormat):
 
     def __init__(self, name):
         self.name = name
-        self._data = _read(name, 'rb')
+        with open(name, 'rb') as f:
+            self._data = f.read()
         if not self._data.startswith(b'Salted__'):
             raise zc.buildout.UserError("Improper input file format")
 
     @property
     def checksum(self):
         # In a format just like the md5sum command line
-        # program. Must be bytes
+        # program. Must be a native string
         csum = md5(self._data).hexdigest()
         basename = os.path.basename(self.name)
         return csum + '  ' + basename + '\n'
@@ -154,13 +146,8 @@ class _BaseDecrypt(object):
             msg = "Input file '%s' does not exist" % input_file
             raise zc.buildout.UserError(msg)
 
-        try:
-            stat = os.stat(input_file)
-        except OSError:  # For testing
-            mtime = 0
-        else:
-            mtime = stat.st_mtime
-        options['_input_mod_time'] = repr(mtime)
+        stat = os.stat(input_file)
+        options['_input_mod_time'] = repr(stat.st_mtime)
 
         self._encrypted_file = _EncryptedFile(input_file)
         options['_checksum'] = self._encrypted_file.checksum
@@ -174,10 +161,11 @@ class _BaseDecrypt(object):
         old_checksum = None
         self.plaintext = None
         if os.path.exists(self.checksum_file):
-            old_checksum = open(self.checksum_file, 'rb').read()
+            with open(self.checksum_file, 'r') as f:
+                old_checksum = f.read()
 
-        if (   old_checksum != self._encrypted_file.checksum
-            or not os.path.exists(self.plaintext_file)):
+        if (old_checksum != self._encrypted_file.checksum
+                or not os.path.exists(self.plaintext_file)):
             passphrase = getpass.getpass('Password for ' + name + ': ')
 
             self.plaintext = self._encrypted_file.get_plaintext(passphrase,
@@ -209,7 +197,7 @@ class _BaseDecrypt(object):
             with open(self.plaintext_file, 'wb') as f:
                 f.write(self.plaintext)
 
-            with open(self.checksum_file, 'wb') as f:
+            with open(self.checksum_file, 'w') as f:
                 f.write(self._encrypted_file.checksum)
 
         return self.checksum_file, self.plaintext_file
@@ -230,7 +218,8 @@ class DecryptSection(_BaseDecrypt):
         if self.plaintext:
             config = ConfigParser()
             source = self.text_(self.plaintext)
-            config.readfp(StringIO(source))
+            read = getattr(config, 'read_file', config.readfp)
+            read(StringIO(source))
             for key, value in config.items(name):
                 options[key] = str(value)
 

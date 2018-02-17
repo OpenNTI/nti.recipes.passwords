@@ -1,7 +1,6 @@
 import codecs
 from setuptools import setup, find_packages
 
-VERSION = '0.0.0'
 
 entry_points = {
     "zc.buildout": [
@@ -11,13 +10,10 @@ entry_points = {
 }
 
 TESTS_REQUIRE = [
-    'nti.testing',
+    'pyhamcrest',
     'zope.testrunner',
+    'fudge',
 ]
-
-import platform
-py_impl = getattr(platform, 'python_implementation', lambda: None)
-IS_PYPY = py_impl() == 'PyPy'
 
 
 def _read(fname):
@@ -44,6 +40,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
         'Framework :: Buildout',
     ],
     zip_safe=True,
@@ -54,13 +51,9 @@ setup(
     tests_require=TESTS_REQUIRE,
     install_requires=[
         'setuptools',
-        'six',
         'zc.buildout',
         'zc.recipe.deployment',
-        # NOTE: We use Crypto but CANNOT depend on it, it's too late,
-        # it must be installed in the buildout. See __init__.py for
-        # details.
-        'pycrypto >= 2.6' if not IS_PYPY else ''
+        'cryptography',
     ],
     extras_require={
         'test': TESTS_REQUIRE,

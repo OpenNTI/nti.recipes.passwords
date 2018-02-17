@@ -8,3 +8,4 @@
 
 - First PyPI release.
 - Add support for Python 3.
+- Switch to the ``cryptography`` library for portability.
