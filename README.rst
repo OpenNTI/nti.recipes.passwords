@@ -7,3 +7,6 @@
 
 .. image:: https://coveralls.io/repos/github/NextThought/nti.recipes.passwords/badge.svg?branch=master
     :target: https://coveralls.io/github/NextThought/nti.recipes.passwords?branch=master
+
+This is a ``zc.buildout`` recipe for securely storing encrypted files
+in version control, but decrypting them when buildout is run.
