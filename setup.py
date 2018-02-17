@@ -51,7 +51,6 @@ setup(
     tests_require=TESTS_REQUIRE,
     install_requires=[
         'setuptools',
-        'six',
         'zc.buildout',
         'zc.recipe.deployment',
         'cryptography',

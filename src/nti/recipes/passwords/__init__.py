@@ -108,7 +108,7 @@ class _EncryptedFile(_BaseFormat):
     @property
     def checksum(self):
         # In a format just like the md5sum command line
-        # program. Must be bytes
+        # program. Must be a native string
         csum = md5(self._data).hexdigest()
         basename = os.path.basename(self.name)
         return csum + '  ' + basename + '\n'
@@ -161,7 +161,7 @@ class _BaseDecrypt(object):
         old_checksum = None
         self.plaintext = None
         if os.path.exists(self.checksum_file):
-            with open(self.checksum_file, 'rb') as f:
+            with open(self.checksum_file, 'r') as f:
                 old_checksum = f.read()
 
         if (old_checksum != self._encrypted_file.checksum

@@ -65,7 +65,8 @@ class TestDecrypt(unittest.TestCase):
         os.write(fd, ciphertext)
         os.close(fd)
 
-        mock_getpass.is_callable().returns('temp001')
+        mock_getpass = mock_getpass.is_callable().times_called(1)
+        mock_getpass.returns('temp001')
 
         buildout = NoDefaultBuildout()
         options = {
@@ -88,7 +89,6 @@ class TestDecrypt(unittest.TestCase):
         }
 
         DecryptSection(buildout, 'passwords', options)
-
         # Now make the data bad
         with open(cast_file_path, 'wb') as f:
             f.write(b'NOT GOOD')
