@@ -37,9 +37,9 @@ import os
 import zc.buildout
 
 try:
-    from ConfigParser import SafeConfigParser as ConfigParser
-except ImportError:
     from configparser import ConfigParser
+except ImportError: # Python 2 pragma: no cover
+    from ConfigParser import SafeConfigParser as ConfigParser
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.ciphers import Cipher
@@ -53,9 +53,14 @@ from hashlib import md5
 
 
 class _BaseFormat(object):
+    _salt = None
 
-    #: Eight bytes of random salt data
-    salt = None
+    @property
+    def salt(self):
+        "Eight bytes of random salt data"
+        if self._salt is None:
+            self._salt = self.new_salt()
+        return self._salt
 
     def new_salt(self):
         return os.urandom(CAST_BLOCK_SIZE)
@@ -91,17 +96,12 @@ class _BaseFormat(object):
         return decryptor.update(ciphertext) + decryptor.finalize()
 
 
-def _read(name, mode):
-    # For ease of mocking
-    with open(name, mode) as f:
-        return f.read()
-
-
 class _EncryptedFile(_BaseFormat):
 
     def __init__(self, name):
         self.name = name
-        self._data = _read(name, 'rb')
+        with open(name, 'rb') as f:
+            self._data = f.read()
         if not self._data.startswith(b'Salted__'):
             raise zc.buildout.UserError("Improper input file format")
 
@@ -146,13 +146,8 @@ class _BaseDecrypt(object):
             msg = "Input file '%s' does not exist" % input_file
             raise zc.buildout.UserError(msg)
 
-        try:
-            stat = os.stat(input_file)
-        except OSError:  # For testing
-            mtime = 0
-        else:
-            mtime = stat.st_mtime
-        options['_input_mod_time'] = repr(mtime)
+        stat = os.stat(input_file)
+        options['_input_mod_time'] = repr(stat.st_mtime)
 
         self._encrypted_file = _EncryptedFile(input_file)
         options['_checksum'] = self._encrypted_file.checksum
@@ -166,7 +161,8 @@ class _BaseDecrypt(object):
         old_checksum = None
         self.plaintext = None
         if os.path.exists(self.checksum_file):
-            old_checksum = open(self.checksum_file, 'rb').read()
+            with open(self.checksum_file, 'rb') as f:
+                old_checksum = f.read()
 
         if (old_checksum != self._encrypted_file.checksum
                 or not os.path.exists(self.plaintext_file)):
@@ -201,7 +197,7 @@ class _BaseDecrypt(object):
             with open(self.plaintext_file, 'wb') as f:
                 f.write(self.plaintext)
 
-            with open(self.checksum_file, 'wb') as f:
+            with open(self.checksum_file, 'w') as f:
                 f.write(self._encrypted_file.checksum)
 
         return self.checksum_file, self.plaintext_file
