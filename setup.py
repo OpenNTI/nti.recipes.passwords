@@ -43,6 +43,7 @@ setup(
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Framework :: Buildout',
+        'License :: OSI Approved :: Apache Software License',
     ],
     zip_safe=True,
     packages=find_packages('src'),
